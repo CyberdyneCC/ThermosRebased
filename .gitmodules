@@ -1,6 +1,7 @@
 [submodule "bukkit"]
 	path = bukkit
-	url = https://github.com/gamerforEA/Bukkit.git
+	url = http://178.32.53.28:3000/robotia/Bukkit-API
+	branch = v1710
 [submodule "forge"]
 	path = forge
 	url = https://github.com/gamerforEA/MinecraftForge.git
