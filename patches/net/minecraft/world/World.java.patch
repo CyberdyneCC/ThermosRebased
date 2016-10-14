@@ -558,7 +558,7 @@
 +                // CraftBukkit start
 +                CraftWorld world = ((WorldServer) this).getWorld();
 +
-+                if (world != null)
++                if (world != null && !isProfilingWorld())
 +                {
 +                    BlockPhysicsEvent event = new BlockPhysicsEvent(world.getBlockAt(p_147460_1_, p_147460_2_, p_147460_3_),
 +                            CraftMagicNumbers.getId(p_147460_4_));
@@ -1215,7 +1215,7 @@
          {
              dest.add(entity);
          }
-@@ -4029,4 +4708,60 @@
+@@ -4029,4 +4708,64 @@
          }
          return count;
      }
@@ -1273,6 +1273,10 @@
 +    {
 +        if (this.spigotConfig == null) if (DimensionManager.getWorld(0) != null) return DimensionManager.getWorld(0).spigotConfig;
 +        return this.spigotConfig;
++    }
++
++    public boolean isProfilingWorld() {
++        return provider.dimensionId == Integer.MIN_VALUE; // Mystcraft
 +    }
 +    // Cauldron end
  }
