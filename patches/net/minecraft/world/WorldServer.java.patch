@@ -144,7 +144,15 @@
          this.theProfiler.endStartSection("chunkSource");
          this.chunkProvider.unloadQueuedChunks();
          int j = this.calculateSkylightSubtracted(1.0F);
-@@ -177,23 +268,40 @@
+@@ -170,30 +261,47 @@
+             this.skylightSubtracted = j;
+         }
+ 
+-        this.worldInfo.incrementTotalWorldTime(this.worldInfo.getWorldTotalTime() + 1L);
++        this.worldInfo.tick();
+ 
+         if (this.getGameRules().getGameRuleBooleanValue("doDaylightCycle"))
+         {
              this.worldInfo.setWorldTime(this.worldInfo.getWorldTime() + 1L);
          }
  
