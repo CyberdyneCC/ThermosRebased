@@ -1,0 +1,19 @@
+--- ../src-base/minecraft/cpw/mods/fml/common/discovery/ModDiscoverer.java
++++ ../src-work/minecraft/cpw/mods/fml/common/discovery/ModDiscoverer.java
+@@ -148,6 +148,16 @@
+             }
+         }
+ 
++        java.util.Iterator<ModContainer> it = modList.iterator();
++
++        while (it.hasNext()) {
++            if ("FastCraft".equals(it.next().getModId())) {
++                FMLLog.log(Level.WARN, "Found FastCraft mod, removing it...");
++                it.remove();
++            }
++        }
++
++
+         return modList;
+     }
+ 
