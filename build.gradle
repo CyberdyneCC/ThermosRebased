@@ -1,3 +1,4 @@
+import groovy.json.JsonSlurper
 buildscript {
     repositories {
         mavenCentral()
@@ -15,9 +16,13 @@ buildscript {
         classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
     }
 }
-
+tasks.whenTaskAdded {
+    if (it.name.startsWith('publish')) it.dependsOn 'preparePublication'
+}
 apply plugin: 'maven'
 apply plugin: 'cauldron'
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
 
 minecraft {
     version = '1.7.10'
@@ -27,14 +32,9 @@ minecraft {
     installerVersion = "1.4"
     subprojects {
         repositories {
-            mavenLocal()
             maven {
                 name = "sonatype"
                 url = "https://oss.sonatype.org/content/repositories/snapshots/"
-            }
-            flatDir {
-                name "fileRepo"
-                dirs "repo"
             }
         }
     }
@@ -44,11 +44,14 @@ minecraft {
 group = 'com.cyberdynecc.thermos'
 archivesBaseName = 'thermos'
 
+def retrieveBuildNumber() {
+    if (!project.hasProperty('officialBuild')) return 'UNOFFICIAL'
+    new JsonSlurper().parse(new URL("http://i.yive.pw/thermos/version"))['nextBuildNumber']
+}
 ext.mcVersion = "1.7.10"
-ext.cauldronVersion = "3"
 ext.forgeVersion = "1403"
-ext.revision = "62"
-version = "${mcVersion}-${cauldronVersion}.${forgeVersion}.${revision}"
+ext.revision = retrieveBuildNumber()
+version = "${mcVersion}-${forgeVersion}.${revision}"
 
 launch4j {
     jreMinVersion = '1.6.0'
@@ -56,10 +59,7 @@ launch4j {
 
 tasks.packageUniversal {
     classifier = 'server'
-}
-
-tasks.packageUniversal.manifest { 
-    attributes([
+    manifest.attributes([
     'Implementation-Vendor': 'CyberdyneCC',
     'Implementation-Title': 'Thermos',
     'Implementation-Version': 'Thermos-'+project.version,
@@ -68,4 +68,52 @@ tasks.packageUniversal.manifest {
     'Specification-Title': 'Bukkit',
     'Specification-Version': '1.7.10-R0.1-SNAPSHOT'
     ])
+
 }
+tasks.createChangelog.onlyIf { false }
+
+task signJars(type: Sign, dependsOn: [packageUniversal, packageInstaller]) {
+    sign packageInstaller
+    sign packageUniversal
+}
+
+task preparePublication(dependsOn: signJars) {}
+
+def getSignatureFiles = {
+    def allFiles = project.tasks.signJars.signatureFiles.collect { it }
+    def signedServer = allFiles.find { it.name.contains('-server') }
+    def signedInstaller = allFiles.find { it.name.contains('-installer') }
+    return [
+            [archive: signedServer, classifier: 'server', extension: 'jar.asc'],
+            [archive: signedInstaller, classifier: 'installer', extension: 'jar.asc']
+    ]
+}
+
+publishing {
+    repositories {
+        maven {
+            name 'ProK'
+            url 'https://prok.pw/repo/'
+            credentials  {
+                username project.hasProperty('prokRepoUsername') ? prokRepoUsername : null
+                password project.hasProperty('prokRepoPassword') ? prokRepoPassword : null
+            }
+        }
+    }
+
+    publications {
+        gpg(MavenPublication) {
+            getSignatureFiles().each { signature ->
+                artifact(signature.archive) {
+                    classifier = signature.classifier
+                    extension = signature.extension
+                }
+            }
+        }
+        jar(MavenPublication) {
+            artifact packageUniversal
+            artifact packageInstaller
+        }
+    }
+}
+
