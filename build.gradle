@@ -48,6 +48,10 @@ def retrieveBuildNumber() {
     if (!project.hasProperty('officialBuild')) return 'UNOFFICIAL'
     new JsonSlurper().parse(new URL("http://i.yive.pw/thermos/version"))['nextBuildNumber']
 }
+def retrieveGitHash() {
+    if (file('.git').exists()) return ['git', 'log', '--format=%H', '-n', '1'].execute().text.trim()
+    return 'NOTGIT'
+}
 ext.mcVersion = "1.7.10"
 ext.forgeVersion = "1403"
 ext.revision = retrieveBuildNumber()
@@ -60,6 +64,7 @@ launch4j {
 tasks.packageUniversal {
     classifier = 'server'
     manifest.attributes([
+    'Git-Hash': retrieveGitHash(),
     'Implementation-Vendor': 'CyberdyneCC',
     'Implementation-Title': 'Thermos',
     'Implementation-Version': 'Thermos-'+project.version,
