@@ -53,7 +53,7 @@ def retrieveGitHash() {
     return 'NOTGIT'
 }
 ext.mcVersion = "1.7.10"
-ext.forgeVersion = "1403"
+ext.forgeVersion = "1408"
 ext.revision = retrieveBuildNumber()
 version = "${mcVersion}-${forgeVersion}.${revision}"
 
@@ -68,7 +68,7 @@ tasks.packageUniversal {
     'Implementation-Vendor': 'CyberdyneCC',
     'Implementation-Title': 'Thermos',
     'Implementation-Version': 'Thermos-'+project.version,
-    'Forge-Version': '10.13.3.1403',
+    'Forge-Version': '10.13.3.1408',
     'Specification-Vendor': 'Bukkit Team',
     'Specification-Title': 'Bukkit',
     'Specification-Version': '1.7.10-R0.1-SNAPSHOT'
