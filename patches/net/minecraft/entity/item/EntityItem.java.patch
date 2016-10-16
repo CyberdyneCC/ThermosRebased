@@ -299,10 +299,21 @@
          ItemStack itemstack = this.getDataWatcher().getWatchableObjectItemStack(10);
 -        return itemstack == null ? new ItemStack(Blocks.stone) : itemstack;
 +        if (itemstack == null) {
-+            itemstack = new ItemStack(Blocks.air, 0);
++            itemstack = new ItemStack(Blocks.stone, 0); // This cannot be air -- air is not a member declared in Items
 +            this.getDataWatcher().updateObject(10, itemstack);
 +        }
 +        return itemstack;
      }
  
      public void setEntityItemStack(ItemStack p_92058_1_)
+@@ -451,4 +527,10 @@
+     {
+         this.field_145801_f = p_145799_1_;
+     }
++
++    @Override
++    public boolean entityAllowedToSpawn() {
++        ItemStack is = this.getDataWatcher().getWatchableObjectItemStack(10);
++        return is != null && is.getItem() != null && is.stackSize > 0;
++    }
+ }
