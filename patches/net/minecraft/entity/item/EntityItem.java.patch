@@ -36,13 +36,35 @@
          this.setEntityItemStack(p_i1710_8_);
          this.lifespan = (p_i1710_8_.getItem() == null ? 6000 : p_i1710_8_.getItem().getEntityLifespan(p_i1710_8_, p_i1710_1_));
      }
-@@ -89,93 +104,103 @@
-             }
-         }
- 
--        if (this.getEntityItem() == null)
+@@ -81,101 +96,112 @@
+     public void onUpdate()
+     {
+         ItemStack stack = this.getDataWatcher().getWatchableObjectItemStack(10);
+-        if (stack != null && stack.getItem() != null)
 -        {
+-            if (stack.getItem().onEntityItemUpdate(this))
+-            {
+-                return;
+-            }
++        if (stack == null || stack.stackSize == 0) {
++            setDead();
++            return;
+         }
+-
+-        if (this.getEntityItem() == null)
++        else if (stack.getItem() != null && stack.getItem().onEntityItemUpdate(this))
+         {
 -            this.setDead();
++            return;
+         }
+-        else
+-        {
+-            super.onUpdate();
+ 
+-            if (this.delayBeforeCanPickup > 0)
+-            {
+-                --this.delayBeforeCanPickup;
+-            }
 +        super.onUpdate();
 +        // CraftBukkit start - Use wall time for pickup and despawn timers
 +        int elapsedTicks = MinecraftServer.currentTick - this.lastTick;
@@ -51,7 +73,11 @@
 +        this.age += elapsedTicks;
 +        this.lastTick = MinecraftServer.currentTick;
 +        // CraftBukkit end
-+
+ 
+-            this.prevPosX = this.posX;
+-            this.prevPosY = this.posY;
+-            this.prevPosZ = this.posZ;
+-            this.motionY -= 0.03999999910593033D;
 +        boolean forceUpdate = this.ticksExisted > 0 && this.ticksExisted % 25 == 0; // Cauldron - optimize item tick updates
 +        this.prevPosX = this.posX;
 +        this.prevPosY = this.posY;
@@ -59,37 +85,18 @@
 +        this.motionY -= 0.03999999910593033D;
 +        // Cauldron start - if forced
 +        if (forceUpdate || noClip) {
-+            this.noClip = this.func_145771_j(this.posX, (this.boundingBox.minY + this.boundingBox.maxY) / 2.0D, this.posZ);
-         }
--        else
--        {
--            super.onUpdate();
+             this.noClip = this.func_145771_j(this.posX, (this.boundingBox.minY + this.boundingBox.maxY) / 2.0D, this.posZ);
+-            this.moveEntity(this.motionX, this.motionY, this.motionZ);
+-            boolean flag = (int)this.prevPosX != (int)this.posX || (int)this.prevPosY != (int)this.posY || (int)this.prevPosZ != (int)this.posZ;
++        }
 +        // Cauldron end
 +        this.moveEntity(this.motionX, this.motionY, this.motionZ);
 +        boolean flag = (int)this.prevPosX != (int)this.posX || (int)this.prevPosY != (int)this.posY || (int)this.prevPosZ != (int)this.posZ;
  
--            if (this.delayBeforeCanPickup > 0)
+-            if (flag || this.ticksExisted % 25 == 0)
 +        if ((flag && this.ticksExisted % 5 == 0) || forceUpdate) // Cauldron - if forced
 +        {
 +            if (this.worldObj.getBlock(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.posY), MathHelper.floor_double(this.posZ)).getMaterial() == Material.lava)
-             {
--                --this.delayBeforeCanPickup;
-+                this.motionY = 0.20000000298023224D;
-+                this.motionX = (double)((this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F);
-+                this.motionZ = (double)((this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F);
-+                this.playSound("random.fizz", 0.4F, 2.0F + this.rand.nextFloat() * 0.4F);
-             }
- 
--            this.prevPosX = this.posX;
--            this.prevPosY = this.posY;
--            this.prevPosZ = this.posZ;
--            this.motionY -= 0.03999999910593033D;
--            this.noClip = this.func_145771_j(this.posX, (this.boundingBox.minY + this.boundingBox.maxY) / 2.0D, this.posZ);
--            this.moveEntity(this.motionX, this.motionY, this.motionZ);
--            boolean flag = (int)this.prevPosX != (int)this.posX || (int)this.prevPosY != (int)this.posY || (int)this.prevPosZ != (int)this.posZ;
--
--            if (flag || this.ticksExisted % 25 == 0)
-+            if (forceUpdate && !this.worldObj.isRemote) // Cauldron - if forced
              {
 -                if (this.worldObj.getBlock(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.posY), MathHelper.floor_double(this.posZ)).getMaterial() == Material.lava)
 -                {
@@ -103,28 +110,26 @@
 -                {
 -                    this.searchForOtherItemsNearby();
 -                }
-+                this.searchForOtherItemsNearby();
++                this.motionY = 0.20000000298023224D;
++                this.motionX = (double)((this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F);
++                this.motionZ = (double)((this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F);
++                this.playSound("random.fizz", 0.4F, 2.0F + this.rand.nextFloat() * 0.4F);
              }
-+        }
  
 -            float f = 0.98F;
-+        float f = 0.98F;
- 
+-
 -            if (this.onGround)
--            {
++            if (forceUpdate && !this.worldObj.isRemote) // Cauldron - if forced
+             {
 -                f = this.worldObj.getBlock(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.boundingBox.minY) - 1, MathHelper.floor_double(this.posZ)).slipperiness * 0.98F;
--            }
-+        if (this.onGround)
-+        {
-+            f = this.worldObj.getBlock(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.boundingBox.minY) - 1, MathHelper.floor_double(this.posZ)).slipperiness * 0.98F;
++                this.searchForOtherItemsNearby();
+             }
 +        }
  
 -            this.motionX *= (double)f;
 -            this.motionY *= 0.9800000190734863D;
 -            this.motionZ *= (double)f;
-+        this.motionX *= (double)f;
-+        this.motionY *= 0.9800000190734863D;
-+        this.motionZ *= (double)f;
++        float f = 0.98F;
  
 -            if (this.onGround)
 -            {
@@ -132,15 +137,24 @@
 -            }
 +        if (this.onGround)
 +        {
-+            this.motionY *= -0.5D;
++            f = this.worldObj.getBlock(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.boundingBox.minY) - 1, MathHelper.floor_double(this.posZ)).slipperiness * 0.98F;
 +        }
  
 -            ++this.age;
-+        // ++this.age; // CraftBukkit - Moved up (base age on wall time)
++        this.motionX *= (double)f;
++        this.motionY *= 0.9800000190734863D;
++        this.motionZ *= (double)f;
  
 -            ItemStack item = getDataWatcher().getWatchableObjectItemStack(10);
 -    
 -            if (!this.worldObj.isRemote && this.age >= lifespan)
++        if (this.onGround)
++        {
++            this.motionY *= -0.5D;
++        }
++
++        // ++this.age; // CraftBukkit - Moved up (base age on wall time)
++
 +        ItemStack item = getDataWatcher().getWatchableObjectItemStack(10);
 +        
 +        if (!this.worldObj.isRemote && this.age >= lifespan - 1) // Cauldron adjust for age being off by one when it is first dropped
@@ -199,7 +213,7 @@
  
          while (iterator.hasNext())
          {
-@@ -225,11 +250,13 @@
+@@ -225,11 +251,13 @@
              }
              else
              {
@@ -218,7 +232,7 @@
                  return true;
              }
          }
-@@ -316,8 +343,27 @@
+@@ -316,8 +344,27 @@
          }
  
          NBTTagCompound nbttagcompound1 = p_70037_1_.getCompoundTag("Item");
@@ -247,7 +261,7 @@
          ItemStack item = getDataWatcher().getWatchableObjectItemStack(10);
  
          if (item == null || item.stackSize <= 0)
-@@ -350,6 +396,31 @@
+@@ -350,6 +397,31 @@
              ItemStack itemstack = this.getEntityItem();
              int i = itemstack.stackSize;
  
@@ -279,3 +293,16 @@
              if (this.delayBeforeCanPickup <= 0 && (this.field_145802_g == null || lifespan - this.age <= 200 || this.field_145802_g.equals(p_70100_1_.getCommandSenderName())) && (event.getResult() == Result.ALLOW || i <= 0 || p_70100_1_.inventory.addItemStackToInventory(itemstack)))
              {
                  if (itemstack.getItem() == Item.getItemFromBlock(Blocks.log))
+@@ -423,7 +495,11 @@
+     public ItemStack getEntityItem()
+     {
+         ItemStack itemstack = this.getDataWatcher().getWatchableObjectItemStack(10);
+-        return itemstack == null ? new ItemStack(Blocks.stone) : itemstack;
++        if (itemstack == null) {
++            itemstack = new ItemStack(Blocks.air, 0);
++            this.getDataWatcher().updateObject(10, itemstack);
++        }
++        return itemstack;
+     }
+ 
+     public void setEntityItemStack(ItemStack p_92058_1_)
