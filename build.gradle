@@ -122,3 +122,10 @@ publishing {
     }
 }
 
+configurations {
+	compile.extendsFrom exported
+}
+
+packageUniversal {
+	from { configurations.exported.collect { it.isDirectory() ? it : zipTree(it) } }
+}
