@@ -4,6 +4,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.cauldron.command.CauldronCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+import java.lang.reflect.Field;
+
 public class CauldronConfig extends ConfigBase
 {
     private final String HEADER = "This is the main configuration file for Cauldron.\n"
@@ -68,36 +70,17 @@ public class CauldronConfig extends ConfigBase
 
     public void init()
     {
-        settings.put(dumpMaterials.path, dumpMaterials);
-        settings.put(disableWarnings.path, disableWarnings);
-        settings.put(worldLeakDebug.path, worldLeakDebug);
-        settings.put(connectionLogging.path, connectionLogging);
-        settings.put(tickIntervalLogging.path, tickIntervalLogging);
-        settings.put(chunkLoadLogging.path, chunkLoadLogging);
-        settings.put(chunkUnloadLogging.path, chunkUnloadLogging);
-        settings.put(entitySpawnLogging.path, entitySpawnLogging);
-        settings.put(entityDespawnLogging.path, entityDespawnLogging);
-        settings.put(entityDeathLogging.path, entityDeathLogging);
-        settings.put(logWithStackTraces.path, logWithStackTraces);
-        settings.put(dumpChunksOnDeadlock.path, dumpChunksOnDeadlock);
-        settings.put(dumpHeapOnDeadlock.path, dumpHeapOnDeadlock);
-        settings.put(dumpThreadsOnWarn.path, dumpThreadsOnWarn);
-        settings.put(logEntityCollisionChecks.path, logEntityCollisionChecks);
-        settings.put(logEntitySpeedRemoval.path, logEntitySpeedRemoval);
-        settings.put(largeCollisionLogSize.path, largeCollisionLogSize);
-        settings.put(largeEntityCountLogSize.path, largeEntityCountLogSize);
-        settings.put(loadChunkOnRequest.path, loadChunkOnRequest);
-        settings.put(loadChunkOnForgeTick.path, loadChunkOnForgeTick);
-        settings.put(checkEntityBoundingBoxes.path, checkEntityBoundingBoxes);
-        settings.put(checkEntityMaxSpeeds.path, checkEntityMaxSpeeds);
-        settings.put(largeBoundingBoxLogSize.path, largeBoundingBoxLogSize);
-        settings.put(enableThreadContentionMonitoring.path, enableThreadContentionMonitoring);
-        settings.put(infiniteWaterSource.path, infiniteWaterSource);
-        settings.put(flowingLavaDecay.path, flowingLavaDecay);
-        settings.put(fakePlayerLogin.path, fakePlayerLogin);
-        settings.put(remapPluginFile.path, remapPluginFile);
-        settings.put(userLogin.path, userLogin);
-        settings.put(allowTntPunishment.path, allowTntPunishment);
+        for (Field field : this.getClass().getDeclaredFields()) {
+            try {
+                Object potentialSetting = field.get(this);
+                if (potentialSetting instanceof Setting) {
+                    Setting actualSetting = (Setting) potentialSetting;
+                    settings.put(actualSetting.path, actualSetting);
+                }
+            } catch(IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
         load();
     }
 
