@@ -1140,6 +1140,15 @@
                  ++i;
              }
          }
+@@ -3298,7 +3946,7 @@
+         for (int i = 0; i < p_72868_1_.size(); ++i)
+         {
+             Entity entity = (Entity)p_72868_1_.get(i);
+-            if (!MinecraftForge.EVENT_BUS.post(new EntityJoinWorldEvent(entity, this)))
++            if (entity.entityAllowedToSpawn() && !MinecraftForge.EVENT_BUS.post(new EntityJoinWorldEvent(entity, this)))
+             {
+                 loadedEntityList.add(entity);
+                 this.onEntityAdded(entity);
 @@ -3314,8 +3962,17 @@
      public boolean canPlaceEntityOnSide(Block p_147472_1_, int p_147472_2_, int p_147472_3_, int p_147472_4_, boolean p_147472_5_, int p_147472_6_, Entity p_147472_7_, ItemStack p_147472_8_)
      {
