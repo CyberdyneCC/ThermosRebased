@@ -52,6 +52,11 @@ def retrieveGitHash() {
     if (file('.git').exists()) return ['git', 'log', '--format=%H', '-n', '1'].execute().text.trim()
     return 'NOTGIT'
 }
+def retrieveGitBranch() {
+    if (file('.git').exists())
+        return ['git', 'symbolic-ref', '--short', 'HEAD'].execute().text.trim();
+    return 'NOTGIT'
+}
 ext.mcVersion = "1.7.10"
 ext.forgeVersion = "1408"
 ext.revision = retrieveBuildNumber()
@@ -64,7 +69,9 @@ launch4j {
 tasks.packageUniversal {
     classifier = 'server'
     manifest.attributes([
+    'Thermos-Git-Branch': retrieveGitBranch(),
     'Git-Hash': retrieveGitHash(),
+    'Thermos-Version': project.version,
     'Implementation-Vendor': 'CyberdyneCC',
     'Implementation-Title': 'Thermos',
     'Implementation-Version': 'Thermos-'+project.version,
@@ -121,11 +128,21 @@ publishing {
         }
     }
 }
+tasks.generateProjectCauldron << {
+	def file = new File('eclipse/cauldron/build.gradle')
+	file.append('''
+dependencies {
+	compile 'org.apache.httpcomponents:httpclient:4.4.1'
+}
+''')
+}
 
 configurations {
 	compile.extendsFrom exported
 }
-
+dependencies {
+    exported 'org.apache.httpcomponents:httpclient:4.4.1'
+}
 packageUniversal {
 	from { configurations.exported.collect { it.isDirectory() ? it : zipTree(it) } }
 }
