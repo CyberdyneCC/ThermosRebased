@@ -23,6 +23,8 @@ public class ThermosConfig extends ConfigBase {
             "updatechecker.quite", false, "Print less info during update");
     public StringSetting updatecheckerInstallAs = new StringSetting(this,
             "updatechecker.installAs", "", "Install new version with specified name");
+    public BoolSetting loggingMaterialInjection = new BoolSetting(this,
+            "logging.materialInjection", false, "Log material injection events (spammy..!)");
 
     public ThermosConfig() {
         super("thermos.yml", "th");
@@ -33,6 +35,7 @@ public class ThermosConfig extends ConfigBase {
         register(updatecheckerAutoinstall);
         register(updatecheckerQuite);
         register(updatecheckerInstallAs);
+        register(loggingMaterialInjection);
         load();
     }
 
