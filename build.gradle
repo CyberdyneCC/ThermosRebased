@@ -44,22 +44,49 @@ minecraft {
 group = 'com.cyberdynecc.thermos'
 archivesBaseName = 'thermos'
 
-def retrieveBuildNumber() {
-    if (!project.hasProperty('officialBuild')) return 'UNOFFICIAL'
-    new JsonSlurper().parse(new URL("http://i.yive.pw/thermos/version"))['nextBuildNumber']
+ext.buildInfoCached = null;
+
+def buildInfo(String key) {
+    if (!buildInfoCached) {
+        if (project.hasProperty('officialBuild')) {
+            buildInfoCached = new JsonSlurper().parse(new URL("https://prok.pw/version/${group}/${name}"))
+        } else {
+            buildInfoCached = [
+                    nextBuildNumber: 'UNOFFICIAL.' + gitInfo('hash'),
+                    version        : 'NONE'
+            ]
+        }
+    }
+    return key ? buildInfoCached[key] : buildInfoCached;
 }
-def retrieveGitHash() {
-    if (file('.git').exists()) return ['git', 'log', '--format=%H', '-n', '1'].execute().text.trim()
-    return 'NOTGIT'
+
+ext.gitInfoCached = null;
+
+def gitInfo(String key) {
+    if (!gitInfoCached) {
+        if (file('.git').exists()) {
+            gitInfoCached = [
+                    hash    : ['git', 'log', "--format=%h", '-n', '1'].execute().text.trim(),
+                    fullHash: ['git', 'log', "--format=%H", '-n', '1'].execute().text.trim(),
+                    branch  : ['git', 'symbolic-ref', '--short', 'HEAD'].execute().text.trim(),
+                    message : ['git', 'log', "--format=%B", '-n', '1'].execute().text.trim()
+            ]
+        } else {
+            gitInfoCached = [
+                    hash    : 'NOT_A_GIT',
+                    fullHash: 'NOT_A_GIT',
+                    branch  : 'NOT_A_GIT',
+                    message : 'NOT_A_GIT'
+            ]
+        }
+    }
+    return key ? gitInfoCached[key] : gitInfoCached;
 }
-def retrieveGitBranch() {
-    if (file('.git').exists())
-        return ['git', 'symbolic-ref', '--short', 'HEAD'].execute().text.trim();
-    return 'NOTGIT'
-}
+
+
 ext.mcVersion = "1.7.10"
 ext.forgeVersion = "1420"
-ext.revision = retrieveBuildNumber()
+ext.revision = buildInfo('nextBuildNumber')
 version = "${mcVersion}-${forgeVersion}.${revision}"
 println "Updated Thermos version: ${version}"
 launch4j {
