@@ -74,7 +74,7 @@ public class TVersionRetriever implements Runnable, UncaughtExceptionHandler {
 
             // TODO - update to new link for Thermos
             HttpUriRequest request = RequestBuilder.get()
-                    .setUri("https://prok.pw/version/pw.prok/Thermos")
+                    .setUri("https://prok.pw/version/pw.prok/Thermos" + Thermos.getChannel())
                     .addParameter("hostname", sServer.getHostname())
                     .addParameter("port", "" + sServer.getPort()).build();
             HttpResponse response = HttpClientBuilder.create()

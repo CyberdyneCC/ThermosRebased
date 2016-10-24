@@ -7,11 +7,12 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 public class Thermos {
-    private static String sCurrentVersion;
+    private static boolean sManifestParsed = false;
 
-    public static String getCurrentVersion() {
-        if (sCurrentVersion != null)
-            return sCurrentVersion;
+    private static void parseManifest() {
+        if (sManifestParsed) return;
+        sManifestParsed = true;
+
         try {
             Enumeration<URL> resources = Thermos.class.getClassLoader()
                     .getResources("META-INF/MANIFEST.MF");
@@ -19,27 +20,51 @@ public class Thermos {
             while (resources.hasMoreElements()) {
                 URL url = resources.nextElement();
                 manifest.load(url.openStream());
-                String version = manifest.getProperty("KCauldron-Version");
+                String version = manifest.getProperty("Thermos-Version");
                 if (version != null) {
                     String path = url.getPath();
                     String jarFilePath = path.substring(path.indexOf(":") + 1, path.indexOf("!"));
                     jarFilePath = URLDecoder.decode(jarFilePath, "UTF-8");
                     sServerLocation = new File(jarFilePath);
-                    return sCurrentVersion = version;
+
+                    sCurrentVersion = version;
+                    sBranch = manifest.getProperty("Thermos-Branch");
+                    sChannel = manifest.getProperty("Thermos-Channel");
                 }
                 manifest.clear();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return sCurrentVersion = "UNKNOWN";
+
+    }
+
+    private static String sCurrentVersion;
+
+    public static String getCurrentVersion() {
+        parseManifest();
+        return sCurrentVersion;
     }
 
     private static File sServerLocation;
 
     public static File getServerLocation() {
-        getCurrentVersion();
+        parseManifest();
         return sServerLocation;
+    }
+
+    private static String sBranch;
+
+    public static String getBranch() {
+        parseManifest();
+        return sBranch;
+    }
+
+    private static String sChannel;
+
+    public static String getChannel() {
+        parseManifest();
+        return sChannel;
     }
 
     public static File sNewServerLocation;

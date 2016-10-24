@@ -68,7 +68,7 @@ def gitInfo(String key) {
             gitInfoCached = [
                     hash    : ['git', 'log', "--format=%h", '-n', '1'].execute().text.trim(),
                     fullHash: ['git', 'log', "--format=%H", '-n', '1'].execute().text.trim(),
-                    branch  : ['git', 'symbolic-ref', '--short', 'HEAD'].execute().text.trim(),
+                    branch  : System.getenv("CI_BUILD_REF_NAME") ?: ['git', 'symbolic-ref', '--short', 'HEAD'].execute().text.trim(),
                     message : ['git', 'log', "--format=%B", '-n', '1'].execute().text.trim()
             ]
         } else {
@@ -100,7 +100,7 @@ tasks.packageUniversal {
     'Git-Hash': gitInfo('fullHash'),
     'Thermos-Version': project.version,
     'Implementation-Vendor': 'CyberdyneCC',
-    'Implementation-Title': 'Thermos',
+    'Implementation-Title': project.name,
     'Implementation-Version': 'Thermos-'+project.version,
     'Forge-Version': '10.13.3.1420',
     'Specification-Vendor': 'Bukkit Team',

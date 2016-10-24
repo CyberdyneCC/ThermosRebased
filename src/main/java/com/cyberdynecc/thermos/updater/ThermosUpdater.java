@@ -38,6 +38,7 @@ public class ThermosUpdater implements Runnable {
                         + version + ") is up to date");
             }
         }
+
         @Override
         public void error(Throwable t) {
             super.error(t);
@@ -118,7 +119,7 @@ public class ThermosUpdater implements Runnable {
             HttpUriRequest request = RequestBuilder
                     .get()
                     .setUri("https://prok.pw/repo/pw/prok/Thermos/"
-                            + mVersion + "/" + filename)
+                            + Thermos.getChannel() + "/" + mVersion + "/" + filename)
                     .addParameter("hostname", server.getHostname())
                     .addParameter("port", "" + server.getPort()).build();
             HttpResponse response = HttpClientBuilder.create()
