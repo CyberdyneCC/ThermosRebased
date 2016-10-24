@@ -89,7 +89,7 @@ public class ThermosUpdater implements Runnable {
             boolean quite = MinecraftServer.thermosConfig.updatecheckerQuite
                     .getValue();
             MinecraftServer server = MinecraftServer.getServer();
-            final String filename = "Thermos-" + mVersion + "-server.jar";
+            final String filename = Thermos.getChannel() + "-" + mVersion + "-server.jar";
             File path = Thermos.getServerLocation();
             File newPath = new File(path.getParentFile(),
                     getInstallAs(filename));
