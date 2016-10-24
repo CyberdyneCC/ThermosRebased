@@ -31,11 +31,17 @@ public class ThermosUpdater implements Runnable {
 
         @Override
         public void upToDate(String version) {
+            Thermos.sUpdateInProgress = false;
             CommandSender sender = getSender();
             if (sender != null) {
                 sender.sendMessage(ChatColor.DARK_PURPLE + "Current version ("
                         + version + ") is up to date");
             }
+        }
+        @Override
+        public void error(Throwable t) {
+            super.error(t);
+            Thermos.sUpdateInProgress = false;
         }
     }
 
