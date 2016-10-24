@@ -1,18 +1,29 @@
 --- ../src-base/minecraft/cpw/mods/fml/common/network/internal/HandshakeCompletionHandler.java
 +++ ../src-work/minecraft/cpw/mods/fml/common/network/internal/HandshakeCompletionHandler.java
-@@ -13,9 +13,15 @@
+@@ -11,15 +11,20 @@
+ @Sharable
+ public class HandshakeCompletionHandler extends SimpleChannelInboundHandler<FMLMessage.CompleteHandshake> {
      @Override
-     protected void channelRead0(ChannelHandlerContext ctx, CompleteHandshake msg) throws Exception
-     {
+-    protected void channelRead0(ChannelHandlerContext ctx, CompleteHandshake msg) throws Exception
+-    {
+-        NetworkDispatcher dispatcher = ctx.channel().attr(NetworkDispatcher.FML_DISPATCHER).getAndRemove();
+-        dispatcher.completeHandshake(msg.target);
++    protected void channelRead0(ChannelHandlerContext ctx, CompleteHandshake msg) throws Exception {
 +        // Cauldron start - attempt to fix race condition with attr being null
-+        Object attr = ctx.channel().attr(NetworkDispatcher.FML_DISPATCHER);
-+        if (attr != null)
-+        {
-         NetworkDispatcher dispatcher = ctx.channel().attr(NetworkDispatcher.FML_DISPATCHER).getAndRemove();
-         dispatcher.completeHandshake(msg.target);
-     }
++        io.netty.util.Attribute<NetworkDispatcher> attr = ctx.channel().attr(NetworkDispatcher.FML_DISPATCHER);
++        if (attr != null) {
++            NetworkDispatcher dispatcher = attr.getAndRemove();
++            if (dispatcher != null) {
++                dispatcher.completeHandshake(msg.target);
++            }
++        }
 +        // Cauldron end
-+    }
+     }
  
      @Override
-     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception
+-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception
+-    {
++    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+         FMLLog.log(Level.ERROR, cause, "HandshakeCompletionHandler exception");
+         super.exceptionCaught(ctx, cause);
+     }

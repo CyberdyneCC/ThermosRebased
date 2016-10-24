@@ -96,8 +96,8 @@ launch4j {
 tasks.packageUniversal {
     classifier = 'server'
     manifest.attributes([
-    'Thermos-Git-Branch': retrieveGitBranch(),
-    'Git-Hash': retrieveGitHash(),
+    'Thermos-Git-Branch': gitInfo('branch'),
+    'Git-Hash': gitInfo('fullHash'),
     'Thermos-Version': project.version,
     'Implementation-Vendor': 'CyberdyneCC',
     'Implementation-Title': 'Thermos',
